@@ -5,39 +5,21 @@
 <title>Perceptrón Interactivo - Iteraciones</title>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
-  body { 
-    font-family: Arial, sans-serif; 
-    margin: 0; 
-    padding: 0; 
-    background: #f4f6f9; 
-    text-align: center; 
-  }
-  h1 { padding: 20px; background: #2c3e50; color: white; margin: 0; }
-  .tab { 
-    overflow: hidden; 
-    background-color: #ecf0f1; 
-    border-bottom: 2px solid #ccc;
-  }
-  .tab button { 
-    background-color: inherit; 
-    border: none; 
-    outline: none; 
-    cursor: pointer; 
-    padding: 14px 20px; 
-    transition: 0.3s; 
-    font-size: 16px;
-  }
-  .tab button:hover { background-color: #ddd; }
-  .tab button.active { background-color: #bdc3c7; font-weight: bold; }
-  .tabcontent { display: none; padding: 20px; }
-  .plot-container { width: 700px; height: 600px; margin: 20px auto; }
-  .controls { margin: 15px 0; }
-  .controls button { margin: 0 5px; padding: 6px 12px; cursor: pointer; }
-  .lr-buttons button { margin: 0 3px; padding: 5px 10px; font-size: 14px; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f4f9; margin:0; padding:0; }
+.container { max-width:900px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+h1 { text-align:center; color:#333; }
+.tab { display:flex; justify-content:center; border-bottom:2px solid #ccc; margin-bottom:20px; }
+.tab button { background:none; border:none; cursor:pointer; padding:10px 20px; font-size:16px; transition:0.3s; border-bottom:3px solid transparent; }
+.tab button.active { border-bottom:3px solid #007BFF; color:#007BFF; font-weight:bold; }
+.tabcontent { display:none; padding-top:10px; }
+.controls { text-align:center; margin-bottom:15px; }
+.controls label, .controls select, .controls input, .controls button { margin:5px; }
+.plot-container { width:100%; height:600px; margin:0 auto; }
 </style>
 </head>
 <body>
 
+<div class="container">
 <h1>Perceptrón Interactivo - Iteraciones</h1>
 
 <div class="tab">
@@ -47,216 +29,127 @@
   <button class="tablinks" onclick="openDataset(event,'Dataset4')">Dataset 4</button>
 </div>
 
-<!-- ========== Plantilla de Dataset (se repite) ========== -->
-<div id="Dataset1" class="tabcontent">
-  <h2>Dataset 1</h2>
-  <p>Teoría, fórmulas o imágenes que quieras mostrar aquí.</p>
-  <div class="controls">
-    <label><input type="checkbox" id="sesgo1" checked onchange="updatePlot('Dataset1')"> Usar sesgo</label><br>
-    Iteración: <input type="range" id="slider1" min="0" max="2" step="1" value="0" oninput="updatePlot('Dataset1')">
-    <button onclick="showBest('Dataset1')">Mejor Peso</button>
-  </div>
-  <div class="lr-buttons">
-    <strong>Learning Rate:</strong>
-    <button onclick="setLR('Dataset1',0)">0.01</button>
-    <button onclick="setLR('Dataset1',1)">0.1</button>
-    <button onclick="setLR('Dataset1',2)">1.0</button>
-  </div>
-  <div id="plot1" class="plot-container"></div>
-</div>
-
-<div id="Dataset2" class="tabcontent">
-  <h2>Dataset 2</h2>
-  <p>Explicación y análisis de Dataset 2.</p>
-  <div class="controls">
-    <label><input type="checkbox" id="sesgo2" checked onchange="updatePlot('Dataset2')"> Usar sesgo</label><br>
-    Iteración: <input type="range" id="slider2" min="0" max="2" step="1" value="0" oninput="updatePlot('Dataset2')">
-    <button onclick="showBest('Dataset2')">Mejor Peso</button>
-  </div>
-  <div class="lr-buttons">
-    <strong>Learning Rate:</strong>
-    <button onclick="setLR('Dataset2',0)">0.01</button>
-    <button onclick="setLR('Dataset2',1)">0.1</button>
-    <button onclick="setLR('Dataset2',2)">1.0</button>
-  </div>
-  <div id="plot2" class="plot-container"></div>
-</div>
-
-<div id="Dataset3" class="tabcontent">
-  <h2>Dataset 3</h2>
-  <p>Ejemplo adicional con un dataset diferente.</p>
-  <div class="controls">
-    <label><input type="checkbox" id="sesgo3" checked onchange="updatePlot('Dataset3')"> Usar sesgo</label><br>
-    Iteración: <input type="range" id="slider3" min="0" max="2" step="1" value="0" oninput="updatePlot('Dataset3')">
-    <button onclick="showBest('Dataset3')">Mejor Peso</button>
-  </div>
-  <div class="lr-buttons">
-    <strong>Learning Rate:</strong>
-    <button onclick="setLR('Dataset3',0)">0.01</button>
-    <button onclick="setLR('Dataset3',1)">0.1</button>
-    <button onclick="setLR('Dataset3',2)">1.0</button>
-  </div>
-  <div id="plot3" class="plot-container"></div>
-</div>
-
-<div id="Dataset4" class="tabcontent">
-  <h2>Dataset 4</h2>
-  <p>Último dataset para comparar resultados.</p>
-  <div class="controls">
-    <label><input type="checkbox" id="sesgo4" checked onchange="updatePlot('Dataset4')"> Usar sesgo</label><br>
-    Iteración: <input type="range" id="slider4" min="0" max="2" step="1" value="0" oninput="updatePlot('Dataset4')">
-    <button onclick="showBest('Dataset4')">Mejor Peso</button>
-  </div>
-  <div class="lr-buttons">
-    <strong>Learning Rate:</strong>
-    <button onclick="setLR('Dataset4',0)">0.01</button>
-    <button onclick="setLR('Dataset4',1)">0.1</button>
-    <button onclick="setLR('Dataset4',2)">1.0</button>
-  </div>
-  <div id="plot4" class="plot-container"></div>
-</div>
+<!-- ==================== Dataset Template ==================== -->
+<div id="Dataset1" class="tabcontent"></div>
+<div id="Dataset2" class="tabcontent"></div>
+<div id="Dataset3" class="tabcontent"></div>
+<div id="Dataset4" class="tabcontent"></div>
 
 <script>
-// ==================== Datos simulados ====================
+// ===== Datos simulados de entrenamiento =====
 const datasets = {
-  "Dataset1": {
-    X: [[2,3],[3,3],[4,2],[5,5],[1,1],[2,0]],
-    y: [1,1,1,-1,-1,-1],
-    // 3 learning rates → cada uno con 2 variantes (con y sin sesgo)
-    pesos: [
-      [[[1,1],[2,1],[3,1]], [[1,1],[2,1],[3,1]]], // lr=0.01
-      [[[1,2],[2,2],[2,3]], [[0,0],[0,0],[0,0]]], // lr=0.1
-      [[[2,1],[2,2],[3,3]], [[0,0],[0,0],[0,0]]]  // lr=1.0
-    ],
-    sesgos: [
-      [[-3,-4,-5],[0,0,0]],
-      [[-2,-3,-3],[0,0,0]],
-      [[-1,-2,-3],[0,0,0]]
-    ],
-    w_best: [3,1], b_best: -5, error_best: 0.5, lr_idx: 0
-  },
-  "Dataset2": {
-    X: [[1,2],[2,2],[3,3],[3,1],[0,1],[1,0]],
-    y: [1,1,1,-1,-1,-1],
-    pesos: [
-      [[[1,2],[2,2],[2,3]], [[0,0],[0,0],[0,0]]],
-      [[[1,1],[2,1],[3,1]], [[0,0],[0,0],[0,0]]],
-      [[[2,1],[2,2],[3,3]], [[0,0],[0,0],[0,0]]]
-    ],
-    sesgos: [
-      [[-2,-3,-3],[0,0,0]],
-      [[-3,-4,-5],[0,0,0]],
-      [[-1,-2,-3],[0,0,0]]
-    ],
-    w_best: [2,3], b_best: -3, error_best: 0.7, lr_idx: 0
-  },
-  "Dataset3": {
-    X: [[0,0],[1,2],[2,4],[3,6],[4,8],[5,10]],
-    y: [1,1,1,-1,-1,-1],
-    pesos: [
-      [[[1,0],[2,1],[3,2]], [[0,0],[0,0],[0,0]]],
-      [[[1,1],[2,2],[3,3]], [[0,0],[0,0],[0,0]]],
-      [[[2,1],[3,2],[4,3]], [[0,0],[0,0],[0,0]]]
-    ],
-    sesgos: [
-      [[-1,-2,-3],[0,0,0]],
-      [[-2,-3,-4],[0,0,0]],
-      [[-3,-4,-5],[0,0,0]]
-    ],
-    w_best: [3,2], b_best: -3, error_best: 0.4, lr_idx: 0
-  },
-  "Dataset4": {
-    X: [[-1,-1],[0,1],[1,1],[2,2],[3,1],[4,0]],
-    y: [1,1,1,-1,-1,-1],
-    pesos: [
-      [[[1,0],[2,1],[3,1]], [[0,0],[0,0],[0,0]]],
-      [[[1,1],[2,2],[2,3]], [[0,0],[0,0],[0,0]]],
-      [[[2,1],[3,2],[4,3]], [[0,0],[0,0],[0,0]]]
-    ],
-    sesgos: [
-      [[-2,-2,-3],[0,0,0]],
-      [[-3,-3,-4],[0,0,0]],
-      [[-1,-2,-3],[0,0,0]]
-    ],
-    w_best: [2,3], b_best: -3, error_best: 0.6, lr_idx: 0
-  }
+  "Dataset1": generateData(),
+  "Dataset2": generateData(),
+  "Dataset3": generateData(),
+  "Dataset4": generateData()
 };
 
-// Rango fijo para todos
-for (let key in datasets){
-    const X = datasets[key].X;
-    datasets[key].xMin = Math.min(...X.map(p=>p[0])) - 1;
-    datasets[key].xMax = Math.max(...X.map(p=>p[0])) + 1;
-    datasets[key].yMin = Math.min(...X.map(p=>p[1])) - 1;
-    datasets[key].yMax = Math.max(...X.map(p=>p[1])) + 1;
+// Función para generar estructura base de cada dataset
+function generateData() {
+  const X = [[1,2],[2,1],[3,3],[4,2],[2,0],[0,1]];
+  const y = [1,1,1,-1,-1,-1];
+  const pesos = [], sesgos = [], w_best = [], b_best = [], error_best = [];
+  for(let sesgo=0; sesgo<2; sesgo++){
+    pesos.push([]); sesgos.push([]); w_best.push([]); b_best.push([]); error_best.push([]);
+    for(let lr=0; lr<3; lr++){
+      pesos[sesgo].push([ [1,1],[2,1],[3,1] ]); // 3 iteraciones
+      sesgos[sesgo].push(sesgo ? [0,0,0] : [-3,-4,-5]);
+      w_best[sesgo].push([3,1]);
+      b_best[sesgo].push(-5);
+      error_best[sesgo].push(0.5);
+    }
+  }
+  return {X,y,pesos,sesgos,w_best,b_best,error_best};
 }
 
-// ==================== Funciones ====================
-function openDataset(evt, datasetName) {
-  let tabcontent = document.getElementsByClassName("tabcontent");
-  for (let i=0; i<tabcontent.length; i++) tabcontent[i].style.display = "none";
-  let tablinks = document.getElementsByClassName("tablinks");
-  for (let i=0; i<tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
-  document.getElementById(datasetName).style.display = "block";
-  evt.currentTarget.className += " active";
+// ===== Render de controles y plot para cada dataset =====
+for(const key in datasets){
+  const container = document.getElementById(key);
+  container.innerHTML = `
+    <h2>${key}</h2>
+    <div class="controls">
+      <label><input type="checkbox" id="${key}_sesgo" checked onchange="updatePlot('${key}')"> Usar sesgo</label>
+      <label>Learning Rate:
+        <select id="${key}_lr" onchange="updatePlot('${key}')">
+          <option value="0">LR 0.01</option>
+          <option value="1">LR 0.05</option>
+          <option value="2">LR 0.1</option>
+        </select>
+      </label>
+      Iteración: <input type="range" id="${key}_slider" min="0" max="2" step="1" value="0" oninput="updatePlot('${key}')">
+      <button onclick="showBest('${key}')">Mostrar Mejor Peso</button>
+    </div>
+    <div id="${key}_plot" class="plot-container"></div>
+  `;
+}
+
+// ===== Pestañas =====
+function openDataset(evt,datasetName){
+  const tabcontent = document.getElementsByClassName("tabcontent");
+  for(let i=0;i<tabcontent.length;i++) tabcontent[i].style.display="none";
+  const tablinks = document.getElementsByClassName("tablinks");
+  for(let i=0;i<tablinks.length;i++) tablinks[i].className=tablinks[i].className.replace(" active","");
+  document.getElementById(datasetName).style.display="block";
+  evt.currentTarget.className+=" active";
   updatePlot(datasetName);
 }
 
-function updatePlot(datasetName, showBestFlag=false) {
+// ===== Actualización del plot =====
+function updatePlot(datasetName, showBestFlag=false){
   const data = datasets[datasetName];
-  const usarSesgo = document.getElementById("sesgo"+datasetName.slice(-1)).checked;
-  const idx = usarSesgo?0:1;
-  const slider = document.getElementById("slider"+datasetName.slice(-1));
+  const usarSesgo = document.getElementById(datasetName+"_sesgo").checked ? 0 : 1;
+  const lr_idx = parseInt(document.getElementById(datasetName+"_lr").value);
+  const slider = document.getElementById(datasetName+"_slider");
   let iter = parseInt(slider.value);
-  if(showBestFlag) iter = data.pesos[data.lr_idx][idx].length-1;
+  if(showBestFlag) iter = data.pesos[usarSesgo][lr_idx].length-1;
+
+  const w = data.pesos[usarSesgo][lr_idx][iter];
+  const b = data.sesgos[usarSesgo][lr_idx][iter];
 
   let traces = [];
-
   // Puntos
   traces.push({
     x: data.X.map(p=>p[0]),
     y: data.X.map(p=>p[1]),
-    mode: "markers",
-    marker: {color: data.y.map(v=>v==1?"blue":"red")},
-    name: "Datos"
+    mode:"markers",
+    marker:{color:data.y.map(v=>v==1?"blue":"red"), size:10},
+    name:"Datos"
   });
 
-  // Vector w actual
-  const w = data.pesos[data.lr_idx][idx][iter];
-  const b = data.sesgos[data.lr_idx][idx][iter];
-  traces.push({x:[0,w[0]], y:[0,w[1]], mode:"lines+markers", line:{color:"green", width:3}, name:"Vector w"});
+  // Vector w
+  traces.push({x:[0,w[0]], y:[0,w[1]], mode:"lines+markers", line:{color:"green",width:3}, name:"Vector w"});
 
-  // Hiperplano actual
-  const x_vals = [], y_vals = [];
-  for (let i=data.xMin; i<=data.xMax; i+=0.1){
-    x_vals.push(i);
-    y_vals.push(-(w[0]*i+b)/w[1]);
-  }
+  // Hiperplano
+  const x_vals=[], y_vals=[];
+  const xMin = Math.min(...data.X.map(p=>p[0]))-1;
+  const xMax = Math.max(...data.X.map(p=>p[0]))+1;
+  for(let i=xMin;i<=xMax;i+=0.1){ x_vals.push(i); y_vals.push(-(w[0]*i+b)/w[1]); }
   traces.push({x:x_vals, y:y_vals, mode:"lines", line:{color:"black", dash:"dash"}, name:"Hiperplano"});
 
-  // Mejor
+  // Mejor peso
   if(showBestFlag){
-    const xb=[], yb=[];
-    for (let i=data.xMin; i<=data.xMax; i+=0.1){
-      xb.push(i);
-      yb.push(-(data.w_best[0]*i+data.b_best)/data.w_best[1]);
-    }
-    traces.push({x:[0,data.w_best[0]], y:[0,data.w_best[1]], mode:"lines+markers", line:{color:"orange", width:4}, name:`Mejor w (Error=${data.error_best})`});
-    traces.push({x:xb, y:yb, mode:"lines", line:{color:"orange", dash:"dot", width:4}, name:"Hiperplano mejor"});
+    const w_best = data.w_best[usarSesgo][lr_idx];
+    const b_best = data.b_best[usarSesgo][lr_idx];
+    const error_best = data.error_best[usarSesgo][lr_idx];
+    const x_best=[], y_best=[];
+    for(let i=xMin;i<=xMax;i+=0.1){ x_best.push(i); y_best.push(-(w_best[0]*i+b_best)/w_best[1]); }
+    traces.push({x:[0,w_best[0]], y:[0,w_best[1]], mode:"lines+markers", line:{color:"orange",width:4}, name:`Mejor w (Error=${error_best})`});
+    traces.push({x:x_best, y:y_best, mode:"lines", line:{color:"orange", dash:"dot", width:4}, name:"Hiperplano mejor w"});
   }
 
-  Plotly.newPlot("plot"+datasetName.slice(-1), traces, {
-    xaxis:{range:[data.xMin,data.xMax]}, 
-    yaxis:{range:[data.yMin,data.yMax]}, 
-    width:700, height:600, title: datasetName
+  Plotly.newPlot(datasetName+"_plot", traces, {
+    xaxis:{range:[xMin-1,xMax+1]}, yaxis:{range:[xMin-1,xMax+1]},
+    width:800, height:600, title:datasetName
   });
 }
 
+// Botón Mejor Peso
 function showBest(datasetName){ updatePlot(datasetName,true); }
-function setLR(datasetName,lrIdx){ datasets[datasetName].lr_idx=lrIdx; updatePlot(datasetName); }
 
-document.addEventListener("DOMContentLoaded", function(){ document.getElementsByClassName("tablinks")[0].click(); });
+// Abrir primera pestaña
+document.addEventListener("DOMContentLoaded",()=>document.getElementsByClassName("tablinks")[0].click());
 </script>
 
+</div>
 </body>
 </html>

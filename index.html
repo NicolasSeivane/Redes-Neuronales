@@ -1,3 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Perceptrón Interactivo - Iteraciones</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+.tab { overflow: hidden; border-bottom: 1px solid #ccc; }
+.tab button { background-color: inherit; border: none; outline: none; cursor: pointer; padding: 10px 20px; transition: 0.3s; }
+.tab button:hover { background-color: #ddd; }
+.tab button.active { background-color: #ccc; }
+.tabcontent { display: none; padding: 10px 0; }
+.plot-container { width: 700px; height: 600px; margin-bottom: 10px; }
+.controls { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Perceptrón Interactivo - Iteraciones</h1>
+
+<div class="tab" id="tabButtons"></div>
+<div id="tabContents"></div>
+
+<script>
+// =================== DATOS EMBEBIDOS ===================
+const datasets = 
+// Pega aquí el contenido de tu JSON, solo el objeto, sin comentarios ni llaves extra
 {
   "Dataset1": {
     "con": [
@@ -14759,4 +14787,171 @@
       }
     ]
   }
-}
+};
+
+// =================== RESTO DEL SCRIPT ===================
+(function() {
+  const tabButtons = document.getElementById('tabButtons');
+  const tabContents = document.getElementById('tabContents');
+  let first = true;
+  for (const dname in datasets) {
+    const btn = document.createElement('button');
+    btn.className = 'tablinks';
+    btn.textContent = dname.replace('Dataset', 'Dataset ');
+    btn.onclick = (evt) => openDataset(evt, dname);
+    tabButtons.appendChild(btn);
+
+    const div = document.createElement('div');
+    div.id = dname;
+    div.className = 'tabcontent';
+    div.innerHTML = `
+      <h2>${dname.replace('Dataset', 'Dataset ')}</h2>
+      <div class="controls">
+        <label>Learning rate:
+          <select id="lr_${dname}"></select>
+        </label>
+        <label>
+          <input type="checkbox" id="sesgo_${dname}" checked> Usar sesgo
+        </label>
+        <br>
+        Iteración: <input type="range" id="slider_${dname}" min="0" value="0" step="1">
+        <span id="iter_${dname}">0</span>
+        <button onclick="showBest('${dname}')">Mostrar Mejor Peso</button>
+      </div>
+      <div id="plot_${dname}" class="plot-container"></div>
+      <div id="info_${dname}"></div>
+    `;
+    tabContents.appendChild(div);
+
+    first && (btn.className += " active");
+    first && (div.style.display = "block");
+    first = false;
+  }
+
+  for (const dname in datasets) {
+    const lrs = datasets[dname].con.length; // asume 3 learning rates
+    const lrSelect = document.getElementById(`lr_${dname}`);
+    ["0.1", "0.01", "0.001"].forEach((lr, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = lr;
+      lrSelect.appendChild(opt);
+    });
+    lrSelect.onchange = () => updatePlot(dname);
+
+    document.getElementById(`sesgo_${dname}`).onchange = () => updatePlot(dname);
+    document.getElementById(`slider_${dname}`).oninput = function() {
+      document.getElementById(`iter_${dname}`).textContent = this.value;
+      updatePlot(dname);
+    };
+  }
+
+  window.openDataset = function(evt, datasetName) {
+    let tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i=0; i<tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+    let tablinks = document.getElementsByClassName("tablinks");
+    for (let i=0; i<tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+    document.getElementById(datasetName).style.display = "block";
+    evt.currentTarget.className += " active";
+    updatePlot(datasetName);
+  };
+
+  window.updatePlot = function(datasetName, showBestFlag=false) {
+    const data = datasets[datasetName];
+    const lrIdx = document.getElementById(`lr_${datasetName}`).value;
+    const usarSesgo = document.getElementById(`sesgo_${datasetName}`).checked;
+    const biasKey = usarSesgo ? "con" : "sin";
+    const results = data[biasKey][lrIdx];
+
+    const X = puntos[datasetName].X;
+    const y = puntos[datasetName].y;
+
+    const slider = document.getElementById(`slider_${datasetName}`);
+    slider.max = results.pesos.length - 1;
+    let iter = parseInt(slider.value);
+    document.getElementById(`iter_${datasetName}`).textContent = iter;
+
+    let traces = [];
+    const puntosPos = X.filter((_,i) => y[i]===1);
+    const puntosNeg = X.filter((_,i) => y[i]===-1);
+
+    traces.push({
+      x: puntosPos.map(p=>p[0]),
+      y: puntosPos.map(p=>p[1]),
+      mode: "markers",
+      marker: {color: "blue"},
+      name: "Clase +1"
+    });
+    traces.push({
+      x: puntosNeg.map(p=>p[0]),
+      y: puntosNeg.map(p=>p[1]),
+      mode: "markers",
+      marker: {color: "red"},
+      name: "Clase -1"
+    });
+
+    const w = results.pesos[iter];
+    const b = results.sesgos[iter];
+
+    const xMin = Math.min(...X.map(p=>p[0])) - 1;
+    const xMax = Math.max(...X.map(p=>p[0])) + 1;
+    const x_vals = [xMin, xMax];
+    const y_vals = x_vals.map(x => (-w[0]*x - b)/w[1]);
+    traces.push({
+      x: x_vals,
+      y: y_vals,
+      mode: "lines",
+      line: {color:"black", dash:"dash"},
+      name: "Hiperplano"
+    });
+
+    // Dibuja el vector w desde el origen
+    const w_norm = Math.sqrt(w[0]*w[0] + w[1]*w[1]);
+    const scale = 2; // Puedes ajustar la longitud visual del vector
+    traces.push({
+      x: [0, w[0]/w_norm*scale],
+      y: [0, w[1]/w_norm*scale],
+      mode: "lines+markers",
+      marker: {color: "green", size: 8},
+      line: {color: "green", width: 4},
+      name: "Vector w"
+    });
+
+    if(showBestFlag){
+      const w_best = results.w_best;
+      const b_best = results.b_best;
+      const y_best = x_vals.map(x => (-w_best[0]*x - b_best)/w_best[1]);
+      traces.push({
+        x: x_vals,
+        y: y_best,
+        mode: "lines",
+        line: {color:"orange", dash:"dot", width:4},
+        name: "Hiperplano mejor w"
+      });
+    }
+
+    Plotly.newPlot(`plot_${datasetName}`, traces, {
+      xaxis: {range: [-2, 8]},   // Escala fija en X
+      yaxis: {range: [-2, 8]},   // Escala fija en Y
+      width:700, height:600,
+      title: datasetName
+    });
+
+    document.getElementById(`info_${datasetName}`).innerHTML = `
+      <b>Iteración:</b> ${iter}<br>
+      <b>w:</b> [${w.map(v=>v.toFixed(3))}]<br>
+      <b>b:</b> ${b.toFixed(3)}<br>
+      <b>Fórmula:</b> ${w[0].toFixed(3)}*x1 + ${w[1].toFixed(3)}*x2 + ${b.toFixed(3)} = 0
+    `;
+  };
+
+  window.showBest = function(datasetName){
+    updatePlot(datasetName,true);
+  };
+
+  document.getElementsByClassName("tablinks")[0].click();
+})();
+</script>
+
+</body>
+</html>

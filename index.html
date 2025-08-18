@@ -124,6 +124,12 @@ span[style*="color:red"] {
   <label>w₁: <input type="range" id="play_w1" min="-2" max="2" step="0.01" value="1"></label>
   <label>w₂: <input type="range" id="play_w2" min="-2" max="2" step="0.01" value="1"></label>
   <label>b: <input type="range" id="play_b" min="-10" max="10" step="0.01" value="0"></label>
+  <label>Vector w:
+  <select id="play_wmode">
+    <option value="normal">Normal a la recta</option>
+    <option value="origen">Desde el origen</option>
+  </select>
+</label>
   <span id="play_values"></span>
 </div>
   <div id="play_plot" class="plot-container"></div>
@@ -5473,6 +5479,12 @@ const puntos = {
           Iteración: <input type="range" id="slider_${dname}" min="0" value="0" step="1">
           <span id="iter_${dname}">0</span>
         </label>
+        <label>Vector w:
+          <select id="wmode_${dname}">
+            <option value="normal">Normal a la recta</option>
+            <option value="origen">Desde el origen</option>
+          </select>
+        </label>
         <button onclick="showBest('${dname}')">Mostrar Mejor Peso</button>
       </div>
       <div id="plot_${dname}" class="plot-container"></div>
@@ -5503,6 +5515,7 @@ const puntos = {
       document.getElementById(`iter_${dname}`).textContent = this.value;
       updatePlot(dname);
     };
+    document.getElementById(`wmode_${dname}`).onchange = () => updatePlot(dname);
   }
 
   window.openDataset = function(evt, datasetName) {
@@ -5598,21 +5611,30 @@ const puntos = {
 
     // Dibuja el vector w desde el centro del hiperplano (no desde el centro del gráfico)
     // El vector w es ortogonal al hiperplano, así que lo dibujamos desde el punto medio del hiperplano
-    if (hpPoints.length === 2 && (Math.abs(w[0]) > 1e-8 || Math.abs(w[1]) > 1e-8)) {
-      const w_norm = Math.sqrt(w[0]*w[0] + w[1]*w[1]);
-      const scale = 2.5;
-      // Punto medio del hiperplano
-      const mx = (hpPoints[0].x + hpPoints[1].x) / 2;
-      const my = (hpPoints[0].y + hpPoints[1].y) / 2;
-      traces.push({
-        x: [mx, mx + w[0]/w_norm*scale],
-        y: [my, my + w[1]/w_norm*scale],
-        mode: "lines+markers",
-        marker: {color: "#2d3a6b", size: 10},
-        line: {color: "#2d3a6b", width: 5},
-        name: "Vector w"
-      });
+  if (hpPoints.length === 2 && (Math.abs(w[0]) > 1e-8 || Math.abs(w[1]) > 1e-8)) {
+    const w_norm = Math.sqrt(w[0]*w[0] + w[1]*w[1]);
+    const scale = 2.5;
+    // Selector de modo
+    let wmode = "normal";
+    const wmodeSel = document.getElementById(`wmode_${datasetName}`);
+    if (wmodeSel) wmode = wmodeSel.value;
+    let wx0, wy0;
+    if (wmode === "origen") {
+      wx0 = 0;
+      wy0 = 0;
+    } else {
+      wx0 = (hpPoints[0].x + hpPoints[1].x) / 2;
+      wy0 = (hpPoints[0].y + hpPoints[1].y) / 2;
     }
+    traces.push({
+      x: [wx0, wx0 + w[0]/w_norm*scale],
+      y: [wy0, wy0 + w[1]/w_norm*scale],
+      mode: "lines+markers",
+      marker: {color: "#2d3a6b", size: 10},
+      line: {color: "#2d3a6b", width: 5},
+      name: "Vector w"
+  });
+}
 
     if(showBestFlag){
       const w_best = results.w_best;
@@ -5788,27 +5810,36 @@ function updatePlayground() {
     hpPoints = [hpPoints[0], hpPoints[hpPoints.length-1]];
   }
   if (hpPoints.length === 2) {
-    traces.push({
-      x: [hpPoints[0].x, hpPoints[1].x],
-      y: [hpPoints[0].y, hpPoints[1].y],
-      mode: "lines",
-      line: {color:"black", dash:"dash", width:3},
-      name: "Hiperplano"
-    });
-    // Vector w desde el punto medio del hiperplano
-    const w_norm = Math.sqrt(w1*w1 + w2*w2);
-    const scale = 2.5;
-    const mx = (hpPoints[0].x + hpPoints[1].x) / 2;
-    const my = (hpPoints[0].y + hpPoints[1].y) / 2;
-    traces.push({
-      x: [mx, mx + w1/w_norm*scale],
-      y: [my, my + w2/w_norm*scale],
-      mode: "lines+markers",
-      marker: {color: "#2d3a6b", size: 10},
-      line: {color: "#2d3a6b", width: 5},
-      name: "Vector w"
-    });
+  traces.push({
+    x: [hpPoints[0].x, hpPoints[1].x],
+    y: [hpPoints[0].y, hpPoints[1].y],
+    mode: "lines",
+    line: {color:"black", dash:"dash", width:3},
+    name: "Hiperplano"
+  });
+
+  // Vector w: modo según selección
+  const w_norm = Math.sqrt(w1*w1 + w2*w2);
+  const scale = 2.5;
+  const wmode = document.getElementById('play_wmode').value;
+  let wx0, wy0;
+  if (wmode === "origen") {
+    wx0 = 0;
+    wy0 = 0;
+  } else {
+    // normal a la recta: desde el punto medio del hiperplano
+    wx0 = (hpPoints[0].x + hpPoints[1].x) / 2;
+    wy0 = (hpPoints[0].y + hpPoints[1].y) / 2;
   }
+  traces.push({
+    x: [wx0, wx0 + w1/w_norm*scale],
+    y: [wy0, wy0 + w2/w_norm*scale],
+    mode: "lines+markers",
+    marker: {color: "#2d3a6b", size: 10},
+    line: {color: "#2d3a6b", width: 5},
+    name: "Vector w"
+  });
+}
   // Ejes X e Y
   traces.push({
     x: [xRange[0], xRange[1]],
@@ -5857,6 +5888,8 @@ function updatePlayground() {
 });
 document.getElementById('play_dataset').onchange = updatePlayground;
 
+document.getElementById('play_wmode').onchange = updatePlayground;
+
 // Activa la primera pestaña por defecto
 document.getElementsByClassName("tablinks")[0].click();
 
@@ -5865,5 +5898,3 @@ document.getElementsByClassName("tablinks")[0].click();
 
 </body>
 </html>
-
-
